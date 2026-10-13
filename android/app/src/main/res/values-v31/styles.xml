@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- A partir de Android 12 la ventana de arranque la pinta el sistema y
+         se salta `windowBackground`: hay que decirle el color por su nombre
+         o vuelve a salir el fondo del tema, que en oscuro es negro. El icono
+         que enseña encima es el del lanzador, que ya es este logotipo. -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowSplashScreenBackground">@color/ivy_paper</item>
+        <item name="android:windowBackground">@drawable/launch_background</item>
+    </style>
+    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">@color/ivy_paper</item>
+    </style>
+</resources>

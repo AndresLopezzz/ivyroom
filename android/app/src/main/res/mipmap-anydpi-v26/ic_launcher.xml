@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icono adaptativo (Android 8 en adelante): el lanzador recorta la forma
+     que quiera -circulo, cuadrado redondeado, gota- sobre estas dos capas.
+     Sin esto, en la mayoria de los moviles el icono sale metido dentro de un
+     circulo blanco con borde, que es la marca de una app sin terminar. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+</adaptive-icon>

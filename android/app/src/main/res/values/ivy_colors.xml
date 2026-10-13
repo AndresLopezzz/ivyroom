@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- El mismo papel calido de la app. Vive aqui y no en el fichero del
+         icono porque lo usan tres sitios: el icono, la ventana de arranque y
+         el fondo de la ventana mientras Flutter dibuja. -->
+    <color name="ivy_paper">#F6F5F2</color>
+</resources>

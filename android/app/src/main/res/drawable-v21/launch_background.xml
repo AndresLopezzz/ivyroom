@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Papel fijo, no `?android:colorBackground`.
+
+     Ese atributo sigue el modo del sistema, y con el movil en oscuro daba
+     negro: de ahi el fogonazo antes de que arrancara Flutter. La app no
+     tiene variante oscura a proposito -las prendas recortadas se leen mejor
+     sobre claro-, asi que su ventana de arranque tampoco puede tenerla. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/ivy_paper" />
+</layer-list>

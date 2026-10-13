@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Identico al tema claro. La app es de un solo tema; heredar de
+         `Theme.Black` cuando el sistema esta en oscuro pintaba de negro
+         tanto la ventana de arranque como el fondo de la ventana mientras
+         Flutter dibuja el primer fotograma. -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">@drawable/launch_background</item>
+    </style>
+    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">@color/ivy_paper</item>
+    </style>
+</resources>

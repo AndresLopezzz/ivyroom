@@ -1,0 +1,70 @@
+name: ivyroom
+description: "Armario digital: cataloga tu ropa y genera outfits."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # Estado
+  flutter_riverpod: ^3.4.2
+
+  # Navegacion
+  go_router: ^17.0.0
+
+  # Datos locales
+  drift: ^2.34.3
+  drift_flutter: ^0.3.0
+  path_provider: ^2.1.5
+  path: ^1.9.0
+
+  # Imagen
+  image_picker: ^1.2.3
+  crop_your_image: ^2.0.0
+  image: ^4.9.2
+  google_mlkit_subject_segmentation: ^0.2.1
+  # WebP con transparencia: el paquete `image` solo sabe decodificarlo.
+  flutter_image_compress: ^2.5.1
+
+  # Respaldo y compartir
+  archive: ^4.0.0
+  share_plus: ^12.0.0
+  file_picker: ^10.0.0
+
+  # Clima
+  geolocator: ^14.0.0
+  http: ^1.2.2
+
+  # Tipografia
+  google_fonts: ^6.2.1
+
+  # Aviso diario
+  flutter_local_notifications: 22.3.1
+  timezone: 0.11.1
+
+  # Cuenta y sincronizacion (Convex por HTTP, sin SDK)
+  google_sign_in: 7.2.0
+
+  # Utilidades
+  collection: ^1.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.13
+  drift_dev: ">=2.30.0 <2.34.1"
+  # Solo para el test de migracion, que construye a mano un esquema v1.
+  sqlite3: ^3.5.2
+
+flutter:
+  uses-material-design: true
+  assets:
+    # Solo el logotipo recortado: el original de `logo.png` es fuente para
+    # generar iconos, no se empaqueta.
+    - assets/branding/wordmark.png
