@@ -50,7 +50,7 @@ Sin la parte opcional la app funciona entera en local; la sección de cuenta sim
 ### 1. Solo local
 
 ```bash
-git clone https://github.com/TU-USUARIO/ivyroom.git
+git clone https://github.com/AndresLopezzz/ivyroom.git
 cd ivyroom
 flutter pub get
 flutter run
@@ -128,7 +128,7 @@ Copia y pega en Claude, ChatGPT o el asistente que uses (mejor si tiene acceso a
 
 ```text
 Quiero instalar y compilar Ivyroom, una app Flutter para Android:
-https://github.com/TU-USUARIO/ivyroom
+https://github.com/AndresLopezzz/ivyroom
 
 Guíame paso a paso, comprobando cada paso antes de pasar al siguiente:
 
