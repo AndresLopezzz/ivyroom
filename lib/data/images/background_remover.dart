@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_subject_segmentation/google_mlkit_subject_segmentation.dart';
 
+import 'segmentation_model.dart';
 
 /// Por qué falló el recorte automático. Se distingue para poder dar un
 /// mensaje útil en vez de un "error" genérico: la mayoría de los fallos en
@@ -39,8 +40,9 @@ class BackgroundRemovalException implements Exception {
           'No se detectó ninguna prenda en la foto. Prueba con un fondo más '
               'liso, o recórtala a mano.',
         RemovalFailure.modelUnavailable =>
-          'El modelo de recorte todavía se está descargando. Conéctate a '
-              'internet e inténtalo de nuevo, o recorta a mano.',
+          'No se pudo descargar el modelo de recorte. Comprueba la conexión '
+              'y que Google Play Services esté actualizado, e inténtalo de '
+              'nuevo en un rato. Mientras tanto puedes recortar a mano.',
         RemovalFailure.unknown =>
           'No se pudo recortar la foto automáticamente. Puedes recortarla '
               'a mano.',
@@ -84,15 +86,16 @@ class MlKitBackgroundRemover implements BackgroundRemover {
 
   @override
   Future<Uint8List> removeBackground(File photo) async {
-    final SubjectSegmentationResult result;
+    SubjectSegmentationResult result;
     try {
-      result = await _instance.processImage(InputImage.fromFile(photo));
-    } catch (e) {
-      final text = e.toString().toLowerCase();
-      final reason = text.contains('model') || text.contains('download')
-          ? RemovalFailure.modelUnavailable
-          : RemovalFailure.unknown;
-      throw BackgroundRemovalException(reason, e.toString());
+      result = await _process(photo);
+    } on BackgroundRemovalException catch (e) {
+      if (e.reason != RemovalFailure.modelUnavailable) rethrow;
+      // Falta el modelo: se pide su descarga, se espera, y se reintenta una
+      // vez. Sin esto, en una app instalada desde un APK el recorte podia no
+      // funcionar nunca.
+      if (!await SegmentationModel.ensure()) rethrow;
+      result = await _process(photo);
     }
 
     final png = result.foregroundBitmap;
@@ -105,6 +108,18 @@ class MlKitBackgroundRemover implements BackgroundRemover {
     // píxel a píxel con la foto para poder restaurar lo que ML Kit quitó de
     // más. Recortar es cosa de quien llama.
     return png;
+  }
+
+  Future<SubjectSegmentationResult> _process(File photo) async {
+    try {
+      return await _instance.processImage(InputImage.fromFile(photo));
+    } catch (e) {
+      final text = e.toString().toLowerCase();
+      final reason = text.contains('model') || text.contains('download')
+          ? RemovalFailure.modelUnavailable
+          : RemovalFailure.unknown;
+      throw BackgroundRemovalException(reason, e.toString());
+    }
   }
 
   @override

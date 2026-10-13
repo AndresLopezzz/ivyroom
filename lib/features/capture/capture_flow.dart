@@ -233,6 +233,24 @@ class _CaptureFlowScreenState extends ConsumerState<CaptureFlowScreen> {
             controller: _cropController,
             baseColor: Theme.of(context).colorScheme.surface,
             maskColor: Colors.black.withValues(alpha: 0.55),
+            // Pellizcar acerca la foto bajo el recuadro: con la prenda lejos
+            // en la foto, sin zoom el recuadro no se puede ajustar bien.
+            interactive: true,
+            cornerDotBuilder: (size, edge) => Container(
+              width: size,
+              height: size,
+              alignment: Alignment.center,
+              child: Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                      color: Theme.of(context).colorScheme.primary, width: 3),
+                ),
+              ),
+            ),
             onCropped: (result) => switch (result) {
               CropSuccess(:final croppedImage) => _onCropped(croppedImage),
               CropFailure(:final cause) =>

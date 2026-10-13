@@ -13,6 +13,7 @@ import '../data/intake/garment_intake.dart';
 import '../data/notifications/daily_reminder.dart';
 import '../data/prefs/app_prefs.dart';
 import '../data/remote/auth_service.dart';
+import '../data/remote/closet_restore.dart';
 import '../data/remote/closet_sync.dart';
 import '../data/remote/convex_client.dart';
 import '../data/repos/catalog_repository.dart';
@@ -702,8 +703,16 @@ final allPlansProvider = StreamProvider<List<DayPlan>>((ref) => ref
     .watchRange(DateTime(2000), DateTime(2100)));
 
 class SyncState {
-  const SyncState({this.running = false, this.lastAt, this.error});
+  const SyncState({
+    this.running = false,
+    this.restoring = false,
+    this.lastAt,
+    this.error,
+  });
   final bool running;
+
+  /// Bajando el armario de la nube a un movil vacio.
+  final bool restoring;
   final DateTime? lastAt;
   final String? error;
 }
@@ -737,6 +746,29 @@ class SyncNotifier extends Notifier<SyncState> {
     state = SyncState(running: true, lastAt: state.lastAt);
     try {
       final storage = await ref.read(imageStorageProvider.future);
+      final api = ref.read(convexProvider);
+
+      // Movil vacio y nube con prendas: es una reinstalacion o un movil
+      // nuevo. Se baja el armario en vez de subir el vacio, que lo borraria.
+      final local = await ref
+          .read(garmentRepositoryProvider)
+          .getAll(includeArchived: true);
+      if (local.isEmpty) {
+        final restore = ClosetRestore(
+          api: api,
+          storage: storage,
+          garments: ref.read(garmentRepositoryProvider),
+          catalog: ref.read(catalogRepositoryProvider),
+          outfits: ref.read(outfitRepositoryProvider),
+          plans: ref.read(planRepositoryProvider),
+        );
+        if (await restore.remoteCount() > 0) {
+          state = SyncState(running: true, restoring: true, lastAt: state.lastAt);
+          final n = await restore.restore(session.closetId);
+          debugPrint('[ivy] restauradas $n prendas desde la nube');
+        }
+      }
+
       await ClosetSync(api: ref.read(convexProvider), storage: storage).push(
         garments: await ref
             .read(garmentRepositoryProvider)

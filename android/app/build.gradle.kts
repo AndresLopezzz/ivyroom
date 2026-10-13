@@ -77,5 +77,10 @@ flutter {
 }
 
 dependencies {
+    // MainActivity pide el modulo de recorte a Play Services: necesita ver
+    // las clases de ML Kit (las trae el plugin, pero no las expone) y la API
+    // de instalacion de modulos.
+    implementation("com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1")
+    implementation("com.google.android.gms:play-services-base:18.5.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

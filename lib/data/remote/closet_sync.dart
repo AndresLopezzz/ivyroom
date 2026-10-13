@@ -105,6 +105,8 @@ class ClosetSync {
   /// ids de catalogo: el visor no tiene la base del dueno.
   static Map<String, Object?> garmentData(Garment g) => {
         'name': g.displayName,
+        // El nombre propio, que puede no existir. `name` es el visible.
+        'rawName': g.name,
         'brand': g.brand,
         'notes': g.notes,
         'category': g.category.name,

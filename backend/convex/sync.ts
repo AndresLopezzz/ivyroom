@@ -88,6 +88,15 @@ export const push = mutation({
           .collect()
       ).map((g) => [g.localId, g]),
     );
+    // Freno: un movil vacio (recien instalado) no puede vaciar la nube. Asi
+    // se perdio un armario entero: se reinstalo la app, se inicio sesion, y
+    // la sincronizacion dejo el servidor igual que el movil. Primero hay que
+    // restaurar desde la nube (`view:closet`).
+    if (args.garments.length === 0 && existingGarments.size > 0) {
+      throw new Error(
+        "El móvil está vacío y la nube no: restaura tu armario antes de sincronizar",
+      );
+    }
     for (const g of args.garments) {
       const old = existingGarments.get(g.localId);
       existingGarments.delete(g.localId);

@@ -112,7 +112,11 @@ class _SignedIn extends ConsumerWidget {
               : Icon(sync.error == null
                   ? Icons.cloud_done_outlined
                   : Icons.cloud_off_outlined),
-          title: Text(sync.running ? 'Sincronizando…' : 'Copia en la nube'),
+          title: Text(sync.restoring
+              ? 'Recuperando tu armario de la nube…'
+              : sync.running
+                  ? 'Sincronizando…'
+                  : 'Copia en la nube'),
           subtitle: Text(sync.error != null
               ? 'Falló: ${sync.error}'
               : last == null

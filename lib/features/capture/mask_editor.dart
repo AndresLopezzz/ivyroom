@@ -154,40 +154,95 @@ class _MaskEditorState extends State<MaskEditor> {
     );
   }
 
+  // ---- lienzo con zoom ----------------------------------------------------
+  //
+  // Un dedo pinta; dos dedos acercan y mueven. Va a mano y no con
+  // `InteractiveViewer` porque ahi el gesto de dibujar se comia el de
+  // pellizcar y el zoom no llegaba a funcionar.
+
+  double _zoom = 1;
+  Offset _pan = Offset.zero;
+  bool _pinching = false;
+  double _zoomAtStart = 1;
+  Offset _panAtStart = Offset.zero;
+  Offset _focalAtStart = Offset.zero;
+
   Widget _canvas(ui.Image image) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // La imagen se ajusta por contain dentro del area disponible; el
-        // resto de la geometria se deriva de aqui.
+        // La imagen se ajusta por contain dentro del area disponible.
         final scale = (constraints.maxWidth / image.width)
             .clamp(0.0, constraints.maxHeight / image.height);
         final displaySize = Size(image.width * scale, image.height * scale);
+        final base = Offset(
+          (constraints.maxWidth - displaySize.width) / 2,
+          (constraints.maxHeight - displaySize.height) / 2,
+        );
 
-        return Center(
-          child: InteractiveViewer(
-            // Un dedo dibuja, dos dedos hacen zoom. Si el paneo estuviera
-            // activo, cada trazo movería el lienzo en lugar de pintar.
-            panEnabled: false,
-            scaleEnabled: true,
-            maxScale: 8,
-            child: SizedBox(
-              width: displaySize.width,
-              height: displaySize.height,
-              child: GestureDetector(
-                onPanStart: (d) => _startStroke(d.localPosition / scale),
-                onPanUpdate: (d) => _extendStroke(d.localPosition / scale),
-                onPanEnd: (_) => _endStroke(),
-                child: CheckerboardBackground(
-                  child: CustomPaint(
-                    painter: _MaskPainter(
-                      image: image,
-                      source: _source!,
-                      strokes: [..._strokes, ?_current],
-                      scale: scale,
+        // Punto de pantalla -> pixel de la imagen original.
+        Offset toImage(Offset screen) =>
+            ((screen - _pan) / _zoom - base) / scale;
+
+        return ClipRect(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onScaleStart: (d) {
+              if (d.pointerCount >= 2) {
+                _beginPinch(d.localFocalPoint);
+              } else {
+                _startStroke(toImage(d.localFocalPoint));
+              }
+            },
+            onScaleUpdate: (d) {
+              if (d.pointerCount >= 2) {
+                // Si el segundo dedo llega despues, el trazo que empezo con
+                // el primero no era un trazo: era el comienzo del pellizco.
+                if (!_pinching) {
+                  setState(() => _current = null);
+                  _beginPinch(d.localFocalPoint);
+                }
+                final zoom = (_zoomAtStart * d.scale).clamp(1.0, 8.0);
+                // El punto bajo los dedos se queda bajo los dedos.
+                final anchor = (_focalAtStart - _panAtStart) / _zoomAtStart;
+                setState(() {
+                  _zoom = zoom;
+                  _pan = d.localFocalPoint - anchor * zoom;
+                });
+              } else if (!_pinching) {
+                _extendStroke(toImage(d.localFocalPoint));
+              }
+            },
+            onScaleEnd: (_) {
+              if (_pinching) {
+                _pinching = false;
+              } else {
+                _endStroke();
+              }
+            },
+            child: Transform(
+              transform: Matrix4.identity()
+                ..translateByDouble(_pan.dx, _pan.dy, 0, 1)
+                ..scaleByDouble(_zoom, _zoom, 1, 1),
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: base.dx,
+                    top: base.dy,
+                    width: displaySize.width,
+                    height: displaySize.height,
+                    child: CheckerboardBackground(
+                      child: CustomPaint(
+                        painter: _MaskPainter(
+                          image: image,
+                          source: _source!,
+                          strokes: [..._strokes, ?_current],
+                          scale: scale,
+                        ),
+                        size: displaySize,
+                      ),
                     ),
-                    size: displaySize,
                   ),
-                ),
+                ],
               ),
             ),
           ),
@@ -195,6 +250,18 @@ class _MaskEditorState extends State<MaskEditor> {
       },
     );
   }
+
+  void _beginPinch(Offset focal) {
+    _pinching = true;
+    _zoomAtStart = _zoom;
+    _panAtStart = _pan;
+    _focalAtStart = focal;
+  }
+
+  void _resetZoom() => setState(() {
+        _zoom = 1;
+        _pan = Offset.zero;
+      });
 
   Widget _toolbar(BuildContext context) {
     return SafeArea(
@@ -232,7 +299,16 @@ class _MaskEditorState extends State<MaskEditor> {
                   ),
                 ),
                 const Icon(Icons.circle, size: 24),
+                IconButton(
+                  tooltip: 'Ver entera',
+                  onPressed: _zoom == 1 ? null : _resetZoom,
+                  icon: const Icon(Icons.zoom_out_map),
+                ),
               ],
+            ),
+            Text(
+              'Un dedo pinta · dos dedos acercan y mueven',
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),
@@ -247,7 +323,9 @@ class _MaskEditorState extends State<MaskEditor> {
       // Empezar a dibujar invalida la pila de rehacer, igual que en
       // cualquier editor.
       _redo.clear();
-      _current = _Stroke(erase: _erasing, radius: _brush)
+      // El grosor es el que se ve en pantalla: con zoom, el pincel se
+      // estrecha en la imagen, que es justo lo que da precision.
+      _current = _Stroke(erase: _erasing, radius: _brush / _zoom)
         ..points.add(imagePoint);
     });
   }
